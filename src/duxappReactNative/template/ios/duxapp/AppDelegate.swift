@@ -51,8 +51,17 @@ class ReactNativeDelegate: ExpoReactNativeFactoryDelegate{
   }
 
   override func bundleURL() -> URL? {
+// #if DEBUG
+//     RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+// #else
 #if DEBUG
-    RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+    // 1. 获取 Metro 服务的主机地址（默认为 localhost，如果是真机则为电脑 IP）
+//    let host = RCTBundleURLProvider.sharedSettings().packagerServerHost() ?? "localhost"
+    let host = "localhost"
+    // 2. 手动拼接 6666 端口的 URL
+    let port = "6666"
+    let jsBundleURL = URL(string: "http://\(host):\(port)/index.bundle?platform=ios&dev=true")
+    return jsBundleURL
 #else
     Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif

@@ -1,0 +1,136 @@
+name: iOS Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number for the release'
+        required: false
+        default: 'manual'
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+
+      - name: Install duxappReactNative dependencies
+        run: |
+          cd src/duxappReactNative
+          yarn install --frozen-lockfile
+
+      - name: Build React Native bundle
+        run: |
+          cd src/duxappReactNative
+          yarn build:rn-ios
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+          bundler-cache: false
+
+      - name: Install CocoaPods
+        run: |
+          gem install cocoapods
+
+      - name: Install Pods
+        run: |
+          cd src/duxappReactNative/template/ios
+          pod install --repo-update
+
+      - name: Build iOS Archive
+        run: |
+          cd src/duxappReactNative/template/ios
+          xcodebuild -workspace duxapp.xcworkspace \
+            -scheme duxapp \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/duxapp.xcarchive \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            clean archive
+
+      - name: Export IPA
+        run: |
+          cd src/duxappReactNative/template/ios
+          # Create export options plist for ad-hoc distribution without code signing
+          cat > $RUNNER_TEMP/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>development</string>
+            <key>compileBitcode</key>
+            <false/>
+            <key>signingStyle</key>
+            <string>manual</string>
+          </dict>
+          </plist>
+          EOF
+          
+          # Export archive to IPA
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/duxapp.xcarchive \
+            -exportPath $RUNNER_TEMP/export \
+            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            CODE_SIGNING_ALLOWED=NO || true
+          
+          # If export fails (expected without signing), create IPA from archive manually
+          if [ ! -f "$RUNNER_TEMP/export/duxapp.ipa" ]; then
+            echo "Creating unsigned IPA from archive..."
+            cd $RUNNER_TEMP/duxapp.xcarchive/Products/Applications
+            mkdir -p Payload
+            cp -r duxapp.app Payload/
+            zip -r $RUNNER_TEMP/duxapp-unsigned.ipa Payload
+            mv $RUNNER_TEMP/duxapp-unsigned.ipa $RUNNER_TEMP/duxapp.ipa
+          else
+            mv $RUNNER_TEMP/export/duxapp.ipa $RUNNER_TEMP/duxapp.ipa
+          fi
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload IPA to Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ${{ runner.temp }}/duxapp.ipa
+          name: Release ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload IPA as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: duxapp-ios-${{ steps.version.outputs.version }}
+          path: ${{ runner.temp }}/duxapp.ipa
+          retention-days: 30

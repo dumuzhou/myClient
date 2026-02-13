@@ -93,11 +93,13 @@ jobs:
             -exportPath $RUNNER_TEMP/export \
             -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
             -allowProvisioningUpdates \
-            CODE_SIGNING_ALLOWED=NO || true
+            CODE_SIGNING_ALLOWED=NO
           
-          # If export fails (expected without signing), create IPA from archive manually
-          if [ ! -f "$RUNNER_TEMP/export/duxapp.ipa" ]; then
-            echo "Creating unsigned IPA from archive..."
+          EXPORT_EXIT_CODE=$?
+          
+          # If export fails with code signing error (expected without signing), create IPA from archive manually
+          if [ $EXPORT_EXIT_CODE -ne 0 ] && [ ! -f "$RUNNER_TEMP/export/duxapp.ipa" ]; then
+            echo "Export failed (exit code: $EXPORT_EXIT_CODE), creating unsigned IPA from archive..."
             cd $RUNNER_TEMP/duxapp.xcarchive/Products/Applications
             mkdir -p Payload
             cp -r duxapp.app Payload/
@@ -113,7 +115,11 @@ jobs:
           if [ "${{ github.event_name }}" == "push" ]; then
             echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           else
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            VERSION="${{ github.event.inputs.version }}"
+            if [ -z "$VERSION" ] || [ "$VERSION" == "manual" ]; then
+              VERSION="manual-$(date +%Y%m%d-%H%M%S)"
+            fi
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload IPA to Release

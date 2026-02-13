@@ -1,10 +1,10 @@
 {
   "scripts": {
     "build:rn": "duxapp build --type rn",
-    "dev:rn": "duxapp build --type rn --watch",
+    "dev:rn": "duxapp build --type rn --watch --port 6666",
     "build:rn-android": "duxapp build --type rn --platform android",
     "build:rn-ios": "duxapp build --type rn --platform ios",
-    "start": "duxapp build --type rn --watch",
+    "start": "duxapp build --type rn --watch --port 6666",
     "android": "duxapp build rn android",
     "debug:android": "duxapp build rn debug:android",
     "build:android": "duxapp build rn build:android",

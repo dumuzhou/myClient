@@ -14,7 +14,9 @@ on:
 jobs:
   build-ios:
     runs-on: macos-latest
-    
+    permissions:
+      contents: write  # Needed to upload release assets
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

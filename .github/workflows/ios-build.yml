@@ -100,13 +100,13 @@ jobs:
           # If export fails with code signing error (expected without signing), create IPA from archive manually
           if [ $export_exit_code -ne 0 ] && [ ! -f "$RUNNER_TEMP/export/duxapp.ipa" ]; then
             echo "Export failed (exit code: $export_exit_code), creating unsigned IPA from archive..."
-            cd $RUNNER_TEMP/duxapp.xcarchive/Products/Applications
+            cd "$RUNNER_TEMP/duxapp.xcarchive/Products/Applications"
             mkdir -p Payload
-            cp -r duxapp.app Payload/
-            zip -r $RUNNER_TEMP/duxapp-unsigned.ipa Payload
-            mv $RUNNER_TEMP/duxapp-unsigned.ipa $RUNNER_TEMP/duxapp.ipa
+            cp -r "duxapp.app" Payload/
+            zip -r "$RUNNER_TEMP/duxapp-unsigned.ipa" Payload
+            mv "$RUNNER_TEMP/duxapp-unsigned.ipa" "$RUNNER_TEMP/duxapp.ipa"
           else
-            mv $RUNNER_TEMP/export/duxapp.ipa $RUNNER_TEMP/duxapp.ipa
+            mv "$RUNNER_TEMP/export/duxapp.ipa" "$RUNNER_TEMP/duxapp.ipa"
           fi
 
       - name: Get version

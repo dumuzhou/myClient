@@ -65,10 +65,11 @@ export default {
     // 临时解决m系列模拟器上无法编译的问题
     'ios/Podfile': {
       postInstallEnd: `    installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings["ONLY_ACTIVE_ARCH"] = "NO"
-    end
-  end`
+      target.build_configurations.each do |config|
+        config.build_settings["ONLY_ACTIVE_ARCH"] = "NO"
+        config.build_settings["CLANG_ENABLE_MODULES"] = "YES"
+      end
+    end`
     }
   },
   replace: {

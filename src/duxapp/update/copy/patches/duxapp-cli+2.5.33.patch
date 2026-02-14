@@ -1,0 +1,77 @@
+diff --git a/node_modules/duxapp-cli/cjs/lib/util.cjs b/node_modules/duxapp-cli/cjs/lib/util.cjs
+index 4b529fb..c2e9e38 100644
+--- a/node_modules/duxapp-cli/cjs/lib/util.cjs
++++ b/node_modules/duxapp-cli/cjs/lib/util.cjs
+@@ -127,10 +127,9 @@ const randomString = (len = 16) => {
+ };
+ const asyncSpawn = (cmd, option) => {
+   return new Promise((resolve, reject) => {
+-    const [_cmd, ..._option] = cmd.split(" ");
+-    const task = (0, import_child_process.spawn)(_cmd, _option, {
++    const task = (0, import_child_process.spawn)(cmd, [], {
+       stdio: "inherit",
+-      shell: process.platform === "win32",
++      shell: true,
+       ...option
+     });
+     task.on("error", (data) => {
+diff --git a/node_modules/duxapp-cli/src/lib/ios.js b/node_modules/duxapp-cli/src/lib/ios.js
+index c47aad5..91fda78 100644
+--- a/node_modules/duxapp-cli/src/lib/ios.js
++++ b/node_modules/duxapp-cli/src/lib/ios.js
+@@ -29,9 +29,9 @@ export const pod = async (...args) => {
+  * @function
+  */
+ export const build = async () => {
+-  const issuerId = getConfig(['ios', 'issuerId'])
+-  const keyId = getConfig(['ios', 'keyId'])
+-  const keyPath = file.pathJoin(getConfig(['ios', 'keyPath']))
++  const issuerId = await getConfig(['ios', 'issuerId'])
++  const keyId = await getConfig(['ios', 'keyId'])
++  const keyPath = file.pathJoin(await getConfig(['ios', 'keyPath']))
+   const execs = [
+     'export SKIP_BUNDLING=TRUE && ',
+     'xcodebuild -workspace ios/duxapp.xcworkspace -scheme duxapp clean archive -configuration release ',
+@@ -49,10 +49,10 @@ export const build = async () => {
+  * @function
+  */
+ export const exportIpa = async () => {
+-  const issuerId = getConfig(['ios', 'issuerId'])
+-  const keyId = getConfig(['ios', 'keyId'])
+-  const keyPath = file.pathJoin(getConfig(['ios', 'keyPath']))
+-  const exportOptionsPlist = getConfig(['ios', 'exportOptionsPlist'])
++  const issuerId = await getConfig(['ios', 'issuerId'])
++  const keyId = await getConfig(['ios', 'keyId'])
++  const keyPath = file.pathJoin(await getConfig(['ios', 'keyPath']))
++  const exportOptionsPlist = await getConfig(['ios', 'exportOptionsPlist'])
+   const execs = [
+     `xcodebuild -exportArchive -archivePath dist/ios/duxapp.xcarchive -exportPath dist/ios/duxapp.ipa -exportOptionsPlist ${exportOptionsPlist} `,
+     '-allowProvisioningUpdates ',
+@@ -69,8 +69,8 @@ export const exportIpa = async () => {
+  * @param filename ipa文件路径
+  */
+ export const upload = async filename => {
+-  const account = getConfig(['ios', 'account'])
+-  const password = getConfig(['ios', 'password'])
++  const account = await getConfig(['ios', 'account'])
++  const password = await getConfig(['ios', 'password'])
+   await util.asyncSpawn(`xcrun altool --upload-app -t ios -f "${filename}" -u "${account}" -p "${password}"`)
+ }
+ 
+diff --git a/node_modules/duxapp-cli/src/lib/util.js b/node_modules/duxapp-cli/src/lib/util.js
+index 0ad7958..2762372 100644
+--- a/node_modules/duxapp-cli/src/lib/util.js
++++ b/node_modules/duxapp-cli/src/lib/util.js
+@@ -92,10 +92,9 @@ export const randomString = (len = 16) => {
+ 
+ export const asyncSpawn = (cmd, option) => {
+   return new Promise((resolve, reject) => {
+-    const [_cmd, ..._option] = cmd.split(' ')
+-    const task = spawn(_cmd, _option, {
++    const task = spawn(cmd, [], {
+       stdio: 'inherit',
+-      shell: process.platform === 'win32',
++      shell: true,
+       ...option
+     })
+ 

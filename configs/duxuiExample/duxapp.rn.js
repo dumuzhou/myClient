@@ -13,11 +13,15 @@ const config = {
     }
   },
   ios: {
-    BundleId: 'cn.duxapp.duxui',
+    issuerId: "1f7bf154-2e77-467c-9934-b04f97b0f041",
+    keyId: "3UFJ24KWAQ",
+    keyPath: "AuthKey_3UFJ24KWAQ.p8",
+    BundleId: "maa.setmp.com",
     appName: 'duxUI库',
     versionCode: 1,
     versionName: '1.0.0',
-    team: '',
+    team: "GLCZM3LS77",
+    method: "ad-hoc",
     plist: {
       'duxapp/Info.plist': {
         NSCalendarsUsageDescription: 'Allow duxapp to access your calendar',

@@ -15,8 +15,22 @@ index 4b529fb..c2e9e38 100644
        ...option
      });
      task.on("error", (data) => {
+diff --git a/node_modules/duxapp-cli/src/index.js b/node_modules/duxapp-cli/src/index.js
+index 6de6cf1..411ee80 100755
+--- a/node_modules/duxapp-cli/src/index.js
++++ b/node_modules/duxapp-cli/src/index.js
+@@ -106,6 +106,9 @@ async function route(route) {
+   }
+   const lib = (await util.importjs(libPath))
+   let func = route[1]
++  if (category === 'ios' && func === 'export') {
++    func = 'exportIpa'
++  }
+   if (!lib[func] && lib._index) {
+     func = '_index'
+   }
 diff --git a/node_modules/duxapp-cli/src/lib/ios.js b/node_modules/duxapp-cli/src/lib/ios.js
-index c47aad5..91fda78 100644
+index c47aad5..9b5ea67 100644
 --- a/node_modules/duxapp-cli/src/lib/ios.js
 +++ b/node_modules/duxapp-cli/src/lib/ios.js
 @@ -29,9 +29,9 @@ export const pod = async (...args) => {
@@ -32,7 +46,7 @@ index c47aad5..91fda78 100644
    const execs = [
      'export SKIP_BUNDLING=TRUE && ',
      'xcodebuild -workspace ios/duxapp.xcworkspace -scheme duxapp clean archive -configuration release ',
-@@ -49,10 +49,10 @@ export const build = async () => {
+@@ -49,10 +49,31 @@ export const build = async () => {
   * @function
   */
  export const exportIpa = async () => {
@@ -43,11 +57,32 @@ index c47aad5..91fda78 100644
 +  const issuerId = await getConfig(['ios', 'issuerId'])
 +  const keyId = await getConfig(['ios', 'keyId'])
 +  const keyPath = file.pathJoin(await getConfig(['ios', 'keyPath']))
-+  const exportOptionsPlist = await getConfig(['ios', 'exportOptionsPlist'])
++  let exportOptionsPlist = await getConfig(['ios', 'exportOptionsPlist'], false)
++  if (!exportOptionsPlist) {
++    exportOptionsPlist = file.pathJoin('ios', 'exportOptions.plist')
++    if (!fs.existsSync(exportOptionsPlist)) {
++      const teamID = await getConfig(['ios', 'team'])
++      const method = await getConfig(['ios', 'method'], false) || 'app-store-connect'
++      const content = `<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>method</key>
++	<string>${method}</string>
++	<key>signingStyle</key>
++	<string>automatic</string>
++	<key>teamID</key>
++	<string>${teamID}</string>
++</dict>
++</plist>`
++      exportOptionsPlist = file.pathJoin('dist', 'ios', 'exportOptions.plist')
++      file.writeFile(exportOptionsPlist, content)
++    }
++  }
    const execs = [
      `xcodebuild -exportArchive -archivePath dist/ios/duxapp.xcarchive -exportPath dist/ios/duxapp.ipa -exportOptionsPlist ${exportOptionsPlist} `,
      '-allowProvisioningUpdates ',
-@@ -69,8 +69,8 @@ export const exportIpa = async () => {
+@@ -69,8 +90,8 @@ export const exportIpa = async () => {
   * @param filename ipa文件路径
   */
  export const upload = async filename => {

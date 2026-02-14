@@ -1,3 +1,15 @@
+diff --git a/node_modules/duxapp-cli/cjs/lib/ios.cjs b/node_modules/duxapp-cli/cjs/lib/ios.cjs
+index b638e09..d909ce6 100644
+--- a/node_modules/duxapp-cli/cjs/lib/ios.cjs
++++ b/node_modules/duxapp-cli/cjs/lib/ios.cjs
+@@ -51,7 +51,6 @@ const build = async () => {
+   const keyId = getConfig(["ios", "keyId"]);
+   const keyPath = file.pathJoin(getConfig(["ios", "keyPath"]));
+   const execs = [
+-    "export SKIP_BUNDLING=TRUE && ",
+     "xcodebuild -workspace ios/duxapp.xcworkspace -scheme duxapp clean archive -configuration release ",
+     "-allowProvisioningUpdates ",
+     "-authenticationKeyPath " + keyPath + " ",
 diff --git a/node_modules/duxapp-cli/cjs/lib/util.cjs b/node_modules/duxapp-cli/cjs/lib/util.cjs
 index 4b529fb..c2e9e38 100644
 --- a/node_modules/duxapp-cli/cjs/lib/util.cjs
@@ -30,10 +42,10 @@ index 6de6cf1..411ee80 100755
      func = '_index'
    }
 diff --git a/node_modules/duxapp-cli/src/lib/ios.js b/node_modules/duxapp-cli/src/lib/ios.js
-index c47aad5..9b5ea67 100644
+index c47aad5..4255b45 100644
 --- a/node_modules/duxapp-cli/src/lib/ios.js
 +++ b/node_modules/duxapp-cli/src/lib/ios.js
-@@ -29,9 +29,9 @@ export const pod = async (...args) => {
+@@ -29,11 +29,10 @@ export const pod = async (...args) => {
   * @function
   */
  export const build = async () => {
@@ -44,9 +56,11 @@ index c47aad5..9b5ea67 100644
 +  const keyId = await getConfig(['ios', 'keyId'])
 +  const keyPath = file.pathJoin(await getConfig(['ios', 'keyPath']))
    const execs = [
-     'export SKIP_BUNDLING=TRUE && ',
+-    'export SKIP_BUNDLING=TRUE && ',
      'xcodebuild -workspace ios/duxapp.xcworkspace -scheme duxapp clean archive -configuration release ',
-@@ -49,10 +49,31 @@ export const build = async () => {
+     '-allowProvisioningUpdates ',
+     '-authenticationKeyPath ' + keyPath + ' ',
+@@ -49,10 +48,31 @@ export const build = async () => {
   * @function
   */
  export const exportIpa = async () => {
@@ -82,7 +96,7 @@ index c47aad5..9b5ea67 100644
    const execs = [
      `xcodebuild -exportArchive -archivePath dist/ios/duxapp.xcarchive -exportPath dist/ios/duxapp.ipa -exportOptionsPlist ${exportOptionsPlist} `,
      '-allowProvisioningUpdates ',
-@@ -69,8 +90,8 @@ export const exportIpa = async () => {
+@@ -69,8 +89,8 @@ export const exportIpa = async () => {
   * @param filename ipa文件路径
   */
  export const upload = async filename => {

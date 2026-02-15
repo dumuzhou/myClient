@@ -1,8 +1,8 @@
 // eslint-disable-next-line import/no-commonjs
 export default {
   insert: {
-    'android/app/proguard-rules.pro': {
-      'content': `
+    "android/app/proguard-rules.pro": {
+      content: `
 ##### @react-native-community/geolocation #####
 -keep class com.android.installreferrer.api.** {*;}
 -keep class com.google.android.gms.common.** {*;}
@@ -52,46 +52,48 @@ export default {
 -keep class abi** { *; }
 -keep class versioned** { *; }
 -keep class expo.modules** { *; }
-`
+`,
     },
-    'android/app/build.gradle': {
+    "android/app/build.gradle": {
       // 打包压缩
       android: `    packagingOptions {
         jniLibs {
             useLegacyPackaging true
         }
-    }`
+    }`,
     },
     // 临时解决m系列模拟器上无法编译的问题
-    'ios/Podfile': {
+    "ios/Podfile": {
       postInstallEnd: `    installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings["ONLY_ACTIVE_ARCH"] = "NO"
         config.build_settings["CLANG_ENABLE_MODULES"] = "YES"
       end
-    end`
-    }
+    end`,
+    },
   },
   replace: {
-    'android/gradle/wrapper/gradle-wrapper.properties': {
-      distributionUrl: 'https://mirrors.cloud.tencent.com/gradle/gradle-9.0.0-bin.zip'
-    }
+    "android/gradle/wrapper/gradle-wrapper.properties": {
+      distributionUrl:
+        "https://mirrors.cloud.tencent.com/gradle/gradle-9.0.0-bin.zip",
+    },
   },
   android: {
     xml: {
-      'app/src/main/AndroidManifest.xml': {
+      "app/src/main/AndroidManifest.xml": {
         tag: {
           queries: {
             child: `<package android:name="com.baidu.BaiduMap" />
-    <package android:name="com.autonavi.minimap" />`
+    <package android:name="com.autonavi.minimap" />`,
           },
-          'intent-filter': {
-            child: '<action android:name="android.intent.action.DOWNLOAD_COMPLETE"/>'
+          "intent-filter": {
+            child:
+              '<action android:name="android.intent.action.DOWNLOAD_COMPLETE"/>',
           },
           manifest: {
             attr: {
               // 临时解决安卓 16 上面返回键会导致直接返回桌面的问题
-              'xmlns:tools': 'http://schemas.android.com/tools'
+              "xmlns:tools": "http://schemas.android.com/tools",
             },
             child: `  <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -118,55 +120,55 @@ export default {
   <uses-permission android:name="android.permission.MOUNT_FORMAT_FILESYSTEMS" />
 
   <!-- 安装应用 -->
-  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />`
-          }
+  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />`,
+          },
         },
         attr: {
           'android:name=".MainApplication"': {
             attr: {
-              'android:largeHeap': 'true',
+              "android:largeHeap": "true",
               // 临时解决安卓 16 上面返回键会导致直接返回桌面的问题
-              'tools:replace': 'android:enableOnBackInvokedCallback',
-              'android:enableOnBackInvokedCallback': 'false'
-            }
+              "tools:replace": "android:allowBackup",
+              "android:enableOnBackInvokedCallback": "false",
+            },
           },
           'android:name=".MainActivity"': {
             attr: {
-              'android:screenOrientation': 'portrait'
-            }
-          }
-        }
+              "android:screenOrientation": "portrait",
+            },
+          },
+        },
       },
-      'app/src/main/res/values/styles.xml': {
+      "app/src/main/res/values/styles.xml": {
         attr: {
           'name="AppTheme"': {
             child: `        <item name="android:textColor">#000000</item>
         <!--设置透明背景-->
-        <item name="android:windowIsTranslucent">true</item>`
-          }
-        }
+        <item name="android:windowIsTranslucent">true</item>`,
+          },
+        },
       },
-      'app/src/main/res/values/colors.xml': {
+      "app/src/main/res/values/colors.xml": {
         tag: {
           resources: {
-            child: `<color name="primary_dark">#000000</color>`
-          }
-        }
-      }
-    }
+            child: `<color name="primary_dark">#000000</color>`,
+          },
+        },
+      },
+    },
   },
   ios: {
     plist: {
-      'duxapp/Info.plist': {
+      "duxapp/Info.plist": {
         NSAppTransportSecurity: {
           NSExceptionDomains: {
             localhost: {
-              NSExceptionAllowsInsecureHTTPLoads: true
-            }
-          }
+              NSExceptionAllowsInsecureHTTPLoads: true,
+            },
+          },
         },
-        LSApplicationQueriesSchemes: ['iosamap', 'baidumap', 'qqmap']
-      }
-    }
-  }
-}
+        LSApplicationQueriesSchemes: ["iosamap", "baidumap", "qqmap"],
+      },
+    },
+  },
+};
